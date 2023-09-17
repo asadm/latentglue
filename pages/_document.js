@@ -7,13 +7,13 @@ export default function Document() {
   const { setTheme } = useTheme()
 
   useEffect(() => {
-    setTheme("dark");
+    setTheme("light");
   }, []);
   return (
     <Html lang="en">
       <Head />
       <body>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeProvider attribute="class" defaultTheme="light">
       <Main />
         <NextScript />
           </ThemeProvider>
