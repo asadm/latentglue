@@ -59,8 +59,9 @@ async function getModelInputs(modelName) {
   return json;
 }
 
-export default function Home({workflow}) {
+export default function Home({workflow, workflowId}) {
   const [steps, setSteps] = useState(workflow.steps);
+  const [intervalId, setIntervalId] = useState(null);
   const [newStepModelName, setNewStepModelName] = useState("");
   return (
     <main
@@ -140,14 +141,16 @@ export default function Home({workflow}) {
                 loadOptions={doModelSearch}
                 placeholder="Search Replicate model..." />
               <Button type="submit" onClick={async () => {
-                const inputs = await getModelInputs(newStepModelName);
+                const {inputs, version} = await getModelInputs(newStepModelName);
                 console.log(newStepModelName, inputs);
                 const newSteps = [...steps];
                 newSteps.push({
                   // id: 'step-' + newStepModelName + Math.random().toString(36).substring(7),
+                  dependsOn: [steps[steps.length - 1].id],
                   id: numWords[steps.length],
                   type: "replicate",
                   model: newStepModelName,
+                  version,
                   inputs,
                 });
                 setSteps(newSteps);
@@ -158,7 +161,35 @@ export default function Home({workflow}) {
       </div>
 
       <div className="flex flex-row gap-3 items-center justify-center w-full text-center mt-3">
-        <Button variant="outline" onClick={() => {}}><IoMdPlay className='mr-1' /> Run</Button>
+        <Button variant="outline" onClick={async () => {
+          console.log(steps);
+          console.log(workflow);
+          const result = await fetch("/api/run", {
+            method: "POST",
+            body: JSON.stringify({
+              workflowId,
+              steps
+            }),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          const json = await result.json();
+          let interval = setInterval(async () => {
+            const status = await fetch("/api/status?id=" + json.id);
+            const statusJson = await status.json();
+            console.log("status", statusJson);
+            if (statusJson.status === "completed") {
+              clearInterval(interval);
+              setIntervalId(null);
+            }
+            if (statusJson.status === "failed") {
+              clearInterval(interval);
+              setIntervalId(null);
+            }
+          }, 2000);
+          setIntervalId(interval);
+        }}><IoMdPlay className='mr-1' /> Run</Button>
         <Button onClick={async () => {
           console.log(steps);
           const result = await fetch("/api/save", {
@@ -184,7 +215,8 @@ export async function getServerSideProps(context){
     const stepsData = await getGlueByUUID(context.query.id);
     return {
       props: {
-        workflow: stepsData.data
+        workflow: stepsData.data,
+        workflowId: context.query.id
       }
     };
   }

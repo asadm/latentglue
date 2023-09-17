@@ -11,7 +11,11 @@ export default async function handler(req, res) {
   }
   try{
     const correctJSON = JSON.parse(json[1].content);
-    res.status(200).json(correctJSON.version.openapi_schema.components.schemas.Input.properties);
+    // res.status(200).json(correctJSON);
+    res.status(200).json({
+      version: correctJSON.version.docker_image_id, 
+      inputs: correctJSON.version.openapi_schema.components.schemas.Input.properties
+    });
   } catch (e) {
     console.log(e);
     res.status(404).json({error: "No model found"});
