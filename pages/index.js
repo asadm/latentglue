@@ -1,56 +1,148 @@
-import Image from 'next/image'
+// import Image from 'next/image'
+// import { cn } from "@/lib/utils"
+// import { Slider } from "@/components/ui/slider"
+// import Select from 'react-select'
+import AsyncSelect, { useAsync } from 'react-select/async';
 import { Inter } from 'next/font/google'
 import { Button } from "@/components/ui/button"
+var humanFormat = require("human-format");
+import { Input } from "@/components/ui/input"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { useState } from 'react'
+import { defaultSteps } from '@/lib/defaultSteps'
+import { Label } from "@/components/ui/label"
 
 const inter = Inter({ subsets: ['latin'] })
 
+
+async function doModelSearch(query){
+  const res = await fetch("/api/search?query=" + query);
+  const json = await res.json();
+  const models = json.models;
+  if (models) {
+    return models.map(model => {
+      return {
+        value: model.username + "/" + model.name,
+        label: model.username + "/" + model.name + " (" + humanFormat(model.prediction_count) + " predictions)",
+      };
+    });
+  }
+  return [];
+}
+
+async function getModelInputs(modelName){
+  const res = await fetch("/api/getModelInputs?model=" + modelName);
+  const json = await res.json();
+  return json;
+}
+
 export default function Home() {
+  const [steps, setSteps] = useState(defaultSteps);
+  const [newStepModelName, setNewStepModelName] = useState("");
   return (
     <main
       className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
     >
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">pages/index.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
+      {steps.map((step, i) => {
+        return (
+          <div className="flex flex-col items-center justify-center w-full text-center mb-2">
+            <Card className="w-full">
+              <CardHeader>
+                <CardTitle>{step.model}</CardTitle>
+                <CardDescription><a target='_blank' href={`https://replicate.com/${step.model}`}>Replicate</a></CardDescription>
+              </CardHeader>
+              <CardContent>
+                {Object.keys(step.inputs).map((inputKey, i) => {
+                  const input = step.inputs[inputKey];
+                  // if (input.type === "integer" && input.minimum && input.maximum){
+                  //   return (
+                  //     <div className="grid w-full max-w-sm text-left gap-1.5 mb-3">
+                  //       <Label htmlFor={inputKey}>{input.title}</Label>
+                  //       <Slider
+                  //         defaultValue={[input.default || input.minimum]}
+                  //         max={input.maximum}
+                  //         step={1}
+                  //         min={input.minimum}
+                  //       />
+                  //     </div>
+                  //   )
+                  // }
+                  if (input.type === 'number' || input.type === 'integer'){
+                    return (
+                      <div className="grid w-full max-w-sm text-left gap-1.5 mb-8">
+                        <Label htmlFor={inputKey}>{input.title}</Label>
+                        <Input type="number" id={inputKey} placeholder={input.description} />
+                      </div>
+                    )
+                  }
+                  return (
+                    <div className="grid w-full max-w-sm text-left gap-1.5 mb-8">
+                      <Label htmlFor={inputKey}>{input.title}</Label>
+                      <Input type="text" id={inputKey} placeholder={input.description} />
+                    </div>
+                  )
+                })}
+              </CardContent>
+              <CardFooter>
+                <p className="text-right w-full" >
+                  <Button variant="destructive" onClick={()=>{
+                    const newSteps = [...steps];
+                    newSteps.splice(i, 1);
+                    setSteps(newSteps);
+                  }} >Delete</Button>
+                  </p>
+              </CardFooter>
+            </Card>
+          </div>
+        )
+      })}
+<div className="flex flex-col items-center justify-center w-full text-center">
+            <Card className="w-full">
+              <CardHeader>
+                <CardTitle>Add New Step</CardTitle>
+              </CardHeader>
+              <CardContent>
+              <div className="flex w-full max-w-sm items-center space-x-2">
+              <AsyncSelect 
+              onChange={(val)=>{
+                setNewStepModelName(val.value);
+              }}
+                className='w-full text-left' 
+                cacheOptions 
+                defaultOptions={[
+                  {value: "stability-ai/sdxl", label: "stability-ai/sdxl"}
+                ]}
+                loadOptions={doModelSearch} 
+                placeholder="Search Replicate model..." />
+                <Button type="submit" onClick={async ()=>{
+                  const inputs = await getModelInputs(newStepModelName);
+                  console.log(newStepModelName, inputs);
+                  const newSteps = [...steps];
+                  newSteps.push({
+                    id: 'step-' + newStepModelName + Math.random().toString(36).substring(7),
+                    type: "replicate",
+                    model: newStepModelName,
+                    inputs,
+                  });
+                  setSteps(newSteps);
+                }}>Add</Button>
+              </div>
+              </CardContent>
+            </Card>
+            </div>
+      {/* <div className="mt-10 flex flex-col items-center justify-center w-full text-center">
+        
+      </div> */}
 
-      </div>
-
-      <div className="flex flex-col items-center justify-center w-full text-center">
-      <Button>Click me</Button>
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
+      {/* <div className="mb-32 mt-8 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
         <a
           href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
           className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
@@ -118,7 +210,7 @@ export default function Home() {
             Instantly deploy your Next.js site to a shareable URL with Vercel.
           </p>
         </a>
-      </div>
+      </div> */}
     </main>
   )
 }
