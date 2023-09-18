@@ -1,5 +1,7 @@
 import Image from 'next/image'
 // import { cn } from "@/lib/utils"
+import { Textarea } from "@/components/ui/textarea"
+
 // import { Slider } from "@/components/ui/slider"
 // import Select from 'react-select'
 import AsyncSelect, { useAsync } from 'react-select/async';
@@ -58,6 +60,7 @@ function OutputRenderer({output}){
     && (output.endsWith(".mp4") || output.endsWith(".mov") || output.endsWith(".avi") || output.endsWith(".webm"))){
       return <video src={output} controls />
     }
+    return <p>{output}</p>
   }
   else if (output && Array.isArray(output)){
     return (
@@ -67,9 +70,6 @@ function OutputRenderer({output}){
         })}
       </div>
     )
-  }
-  else if (output && typeof output === "string"){
-    return <p>{output}</p>
   }
 }
 
@@ -151,10 +151,11 @@ export default function Home({workflow, workflowId}) {
                   <div className='w-1/2 p-4 text-left overflow-y-auto'>
                     {Object.keys(step.inputs).map((inputKey, inputIndex) => {
                       const input = step.inputs[inputKey];
+                      const InputEl = inputKey === "prompt" ? Textarea : Input;
                       return (
                         <div className="grid w-full max-w-sm text-left gap-1.5 mb-8">
                           <Label htmlFor={inputKey}>{input.title}</Label>
-                          <Input
+                          <InputEl
                             type={(input.type === 'number' || input.type === 'integer') ? "number" : "text"}
                             id={inputKey}
                             onChange={(e) => {
@@ -162,7 +163,6 @@ export default function Home({workflow, workflowId}) {
                               console.log(newSteps);
                               newSteps[i].inputs[inputKey].default = e.target.value;
                               setSteps(newSteps);
-
 
                             }}
                             placeholder={input.description}
