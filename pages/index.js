@@ -3,14 +3,6 @@
 // import { Slider } from "@/components/ui/slider"
 // import Select from 'react-select'
 import AsyncSelect, { useAsync } from 'react-select/async';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-
-
 
 import { Inter } from 'next/font/google'
 import { IoMdCopy, IoIosSave, IoMdPlay } from "react-icons/io";
@@ -75,6 +67,9 @@ function OutputRenderer({output}){
       </div>
     )
   }
+  else if (output && typeof output === "string"){
+    return <p>{output}</p>
+  }
 }
 
 async function getModelInputs(modelName) {
@@ -88,6 +83,7 @@ export default function Home({workflow, workflowId}) {
   const [intervalId, setIntervalId] = useState(null);
   const [stepRunData, setStepRunData] = useState([]);
   const [newStepModelName, setNewStepModelName] = useState("");
+  const [stepCollapsed, setStepCollapsed] = useState(steps.map(() => false));
   return (
     <main
       className={`md:container mx-auto flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}>
@@ -95,10 +91,20 @@ export default function Home({workflow, workflowId}) {
         console.log("stepRunData", step.id, stepRunData[i]);
         const currentStepData = stepRunData[i];
         return (
-          <div className="flex flex-col items-center justify-center w-full text-center mb-2">
+          <div className="flex flex-col items-center justify-center w-full text-center mb-4">
             <Card className="w-full">
-              <CardHeader>
-                <CardTitle>{step.model} <a target='_blank' href={`https://replicate.com/${step.model}`}><BsBoxArrowUpRight size={16} className="inline align-top mt-1 ml-1" /></a></CardTitle>
+              <CardHeader className="cursor-pointer" onClick={()=> {
+                const newCollapsed = [...stepCollapsed];
+                newCollapsed[i] = !newCollapsed[i];
+                setStepCollapsed(newCollapsed);
+              }}>
+                <CardTitle>
+                  { (currentStepData && currentStepData.status === "inprogress") && (
+                    <div className="absolute">
+                      <div className="lds-ripple"><div></div><div></div></div>
+                    </div>
+                  )}
+                  {step.model} <a target='_blank' href={`https://replicate.com/${step.model}`}><BsBoxArrowUpRight size={16} className="inline align-top mt-1 ml-1" /></a></CardTitle>
                 <CardDescription>
                   <code className='p-1' style={{background: stringToColor(step.id)}}>{step.id}</code> <a style={{ cursor: "pointer" }} onClick={() => {
                     navigator.clipboard.writeText(step.id);
@@ -107,7 +113,7 @@ export default function Home({workflow, workflowId}) {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className='flex divide-x'>
+                <div className={'flex divide-x ' + (stepCollapsed[i] ? 'hidden' : '')}>
                   <div className='w-1/2 p-4 text-left overflow-y-auto'>
                     {Object.keys(step.inputs).map((inputKey, inputIndex) => {
                       const input = step.inputs[inputKey];
@@ -134,7 +140,7 @@ export default function Home({workflow, workflowId}) {
                   <div className='w-1/2 p-4 text-left overflow-y-auto'>
                     <h2 className='text-lg'>Output</h2>
                     {currentStepData && currentStepData.status === "inprogress" && (
-                      <div className="lds-ripple"><div></div><div></div></div>
+                      <i>Running...</i>
                     )}
                     {currentStepData && currentStepData.status === "completed" && currentStepData.output && (
                       <OutputRenderer output={currentStepData.output} />
@@ -147,7 +153,8 @@ export default function Home({workflow, workflowId}) {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
+              { !stepCollapsed[i] && (
+                <CardFooter>
                 <p className="text-right w-full" >
                   <Button variant="destructive" onClick={() => {
                     const newSteps = [...steps];
@@ -156,6 +163,7 @@ export default function Home({workflow, workflowId}) {
                   }} >Delete</Button>
                 </p>
               </CardFooter>
+              )}
             </Card>
           </div>
         )
