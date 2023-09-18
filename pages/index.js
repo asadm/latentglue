@@ -91,7 +91,7 @@ export default function Home({workflow, workflowId}) {
   const [stepCollapsed, setStepCollapsed] = useState(steps.map(() => false));
   return (
     <>
-    <div style={{height: workflowId?"200px":"400px"}} className="hero text-black align-middle mt-40 text-center">
+    <div style={{height: workflowId?"200px":"500px"}} className="hero text-black align-middle mt-40 text-center">
         {/* <img src="/images/stock/photo-1635805737707-575885ab0820.jpg" className="max-w-sm rounded-lg shadow-2xl" /> */}
           <h1 className="text-5xl font-bold"><a href="/">🍯 Latent<i className="">Glue</i></a></h1>
           <p className="py-6 text-lg">Glue models together to make pipelines and workflows.</p>
