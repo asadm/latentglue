@@ -1,8 +1,18 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# LatentGlue
+
+Glue models together to make pipelines and workflows.
 
 ## Getting Started
 
-First, run the development server:
+First, create a `.env` file in the root of the project. This file is used to store environment variables. You can copy the `.env.example` file and rename it to `.env`.
+
+Then, install the dependencies:
+
+```bash
+npm install
+```
+
+then run the development server:
 
 ```bash
 npm run dev
