@@ -95,6 +95,7 @@ export default function Home({workflow, workflowId}) {
         {/* <img src="/images/stock/photo-1635805737707-575885ab0820.jpg" className="max-w-sm rounded-lg shadow-2xl" /> */}
           <h1 className="text-5xl font-bold"><a href="/">🍯 Latent<i className="">Glue</i></a></h1>
           <p className="py-6 text-lg">Glue models together to make pipelines and workflows.</p>
+          <p className="py-6 text-lg"><a href="https://github.com/asadm/latentglue" target='_blank'>GitHub <BsBoxArrowUpRight className='inline align-top mt-1' size={18} /></a></p>
           {/* {show top thumbnails} */}
           <div className="flex flex-row flex-wrap justify-center gap-4">
             {!workflowId && topWorkflows.map((workflow) => {
