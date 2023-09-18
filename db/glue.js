@@ -57,8 +57,24 @@ async function updateGlue(uuid, data) {
   }
 }
 
+// async function getTopModels(num){
+//   try {
+//     const docRef = db.collection("glues").orderBy("runs", "desc").limit(num);
+//     const docSnapshot = await docRef.get();
+
+//     if (docSnapshot.exists) {
+//       return docSnapshot.data();
+//     } else {
+//       throw new Error("Document not found");
+//     }
+//   } catch (error) {
+//     throw error;
+//   }
+// }
+
 module.exports = {
   getGlueByUUID,
   setGlue,
-  updateGlue
+  updateGlue,
+  // getTopModels
 };

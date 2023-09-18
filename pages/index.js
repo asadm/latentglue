@@ -1,9 +1,9 @@
-// import Image from 'next/image'
+import Image from 'next/image'
 // import { cn } from "@/lib/utils"
 // import { Slider } from "@/components/ui/slider"
 // import Select from 'react-select'
 import AsyncSelect, { useAsync } from 'react-select/async';
-
+import { topWorkflows } from '@/lib/homepageWorkflows';
 import { Inter } from 'next/font/google'
 import { IoMdCopy, IoIosSave, IoMdPlay } from "react-icons/io";
 import { BsBoxArrowUpRight } from "react-icons/bs";
@@ -90,8 +90,37 @@ export default function Home({workflow, workflowId}) {
   const [newStepModelName, setNewStepModelName] = useState("");
   const [stepCollapsed, setStepCollapsed] = useState(steps.map(() => false));
   return (
+    <>
+    <div style={{height: workflowId?"200px":"400px"}} className="hero text-black align-middle mt-40 text-center">
+        {/* <img src="/images/stock/photo-1635805737707-575885ab0820.jpg" className="max-w-sm rounded-lg shadow-2xl" /> */}
+          <h1 className="text-5xl font-bold"><a href="/">🍯 Latent<i className="">Glue</i></a></h1>
+          <p className="py-6 text-lg">Glue models together to make pipelines and workflows.</p>
+          {/* {show top thumbnails} */}
+          <div className="flex flex-row flex-wrap justify-center gap-4">
+            {!workflowId && topWorkflows.map((workflow) => {
+              return (
+                <a href={`/?id=${workflow.id}`}>
+                <div
+  class="block max-w-[18rem] rounded-lg bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] dark:bg-neutral-700">
+  <div class="relative overflow-hidden bg-cover bg-no-repeat">
+    <img
+      class="rounded-t-lg"
+      src={workflow.image}
+      alt="" />
+  </div>
+  <div class="p-6">
+    <p class="text-base text-neutral-600 dark:text-neutral-200">
+      {workflow.title}
+    </p>
+  </div>
+</div>
+</a>
+              )})}
+              </div>
+      </div>
     <main
       className={`md:container mx-auto flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}>
+        
       {steps.map((step, i) => {
         console.log("stepRunData", step.id, stepRunData[i]);
         const currentStepData = stepRunData[i];
@@ -270,10 +299,12 @@ export default function Home({workflow, workflowId}) {
         }}><IoIosSave className='mr-1' /> Save</Button>
       </div>
     </main>
+    </>
   )
 }
 
 export async function getServerSideProps(context){
+  // const topWorkflows = await getTopModels(10);
   if (context.query.id){
     const stepsData = await getGlueByUUID(context.query.id);
     return {
@@ -286,6 +317,7 @@ export async function getServerSideProps(context){
   else{
     return {
       props: {
+        // topWorkflows,
         workflow: defaultSteps
       }
     }
