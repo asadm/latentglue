@@ -18,10 +18,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { defaultSteps } from '@/lib/defaultSteps'
 import { Label } from "@/components/ui/label"
 import { getGlueByUUID } from '@/db/glue';
+import { track } from '@/lib/analytics';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -79,6 +80,10 @@ async function getModelInputs(modelName) {
 }
 
 export default function Home({workflow, workflowId}) {
+
+  useEffect(() => {
+    track("Pageview");
+  }, []);
   const [steps, setSteps] = useState(workflow.steps);
   const [intervalId, setIntervalId] = useState(null);
   const [stepRunData, setStepRunData] = useState([]);
@@ -201,6 +206,10 @@ export default function Home({workflow, workflowId}) {
                 };
                 if (newSteps.length > 0) dump.dependsOn = [newSteps[newSteps.length - 1].id];
                 newSteps.push(dump);
+                track("Add Step", {
+                  model: newStepModelName,
+                  totalSteps: newSteps.length
+                });
                 setSteps(newSteps);
               }}>Add</Button>
             </div>
@@ -223,6 +232,7 @@ export default function Home({workflow, workflowId}) {
             }
           });
           const json = await result.json();
+          track("Run Workflow", {workflowId: workflowId || "new", runId: json.id});
           let interval = setInterval(async () => {
             const status = await fetch("/api/status?id=" + json.id);
             const statusJson = await status.json();
@@ -244,6 +254,7 @@ export default function Home({workflow, workflowId}) {
           </Button>
         <Button onClick={async () => {
           console.log(steps);
+          track("Save Workflow");
           const result = await fetch("/api/save", {
             method: "POST",
             body: JSON.stringify({

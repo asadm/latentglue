@@ -48,7 +48,17 @@ async function setGlue(data) {
   }
 }
 
+async function updateGlue(uuid, data) {
+  try {
+    const docRef = db.collection("glues").doc(uuid);
+    await docRef.update(data);
+  } catch (error) {
+    throw error;
+  }
+}
+
 module.exports = {
   getGlueByUUID,
   setGlue,
+  updateGlue
 };
