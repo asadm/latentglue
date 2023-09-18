@@ -53,6 +53,30 @@ async function doModelSearch(query) {
   return [];
 }
 
+function OutputRenderer({output}){
+  if (output && typeof output === "string"){
+    // check if url to image
+    if (output.startsWith("http") 
+      && (output.endsWith(".png") || output.endsWith(".jpg") || output.endsWith(".jpeg") || output.endsWith(".gif"))){
+      return <img src={output} />
+    }
+    // check for video file
+    else if (output.startsWith("http") 
+    && (output.endsWith(".mp4") || output.endsWith(".mov") || output.endsWith(".avi") || output.endsWith(".webm"))){
+      return <video src={output} controls />
+    }
+  }
+  else if (output && Array.isArray(output)){
+    return (
+      <div className='flex gap-2'>
+        {output.map((item) => {
+          return <OutputRenderer output={item} />
+        })}
+      </div>
+    )
+  }
+}
+
 async function getModelInputs(modelName) {
   const res = await fetch("/api/getModelInputs?model=" + modelName);
   const json = await res.json();
@@ -62,11 +86,14 @@ async function getModelInputs(modelName) {
 export default function Home({workflow, workflowId}) {
   const [steps, setSteps] = useState(workflow.steps);
   const [intervalId, setIntervalId] = useState(null);
+  const [stepRunData, setStepRunData] = useState([]);
   const [newStepModelName, setNewStepModelName] = useState("");
   return (
     <main
       className={`md:container mx-auto flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}>
       {steps.map((step, i) => {
+        console.log("stepRunData", step.id, stepRunData[i]);
+        const currentStepData = stepRunData[i];
         return (
           <div className="flex flex-col items-center justify-center w-full text-center mb-2">
             <Card className="w-full">
@@ -106,6 +133,17 @@ export default function Home({workflow, workflowId}) {
                   </div>
                   <div className='w-1/2 p-4 text-left overflow-y-auto'>
                     <h2 className='text-lg'>Output</h2>
+                    {currentStepData && currentStepData.status === "inprogress" && (
+                      <div className="lds-ripple"><div></div><div></div></div>
+                    )}
+                    {currentStepData && currentStepData.status === "completed" && currentStepData.output && (
+                      <OutputRenderer output={currentStepData.output} />
+                    )}
+                    {currentStepData && currentStepData.status === "failed" && currentStepData.error && (
+                      <div className='bg-red-100 p-2 rounded'>
+                        <p className='text-red-500'>{currentStepData.error}</p>
+                        </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -144,15 +182,17 @@ export default function Home({workflow, workflowId}) {
                 const {inputs, version} = await getModelInputs(newStepModelName);
                 console.log(newStepModelName, inputs);
                 const newSteps = [...steps];
-                newSteps.push({
+                const dump = {
                   // id: 'step-' + newStepModelName + Math.random().toString(36).substring(7),
-                  dependsOn: [steps[steps.length - 1].id],
+                  // dependsOn: [steps[steps.length - 1].id],
                   id: numWords[steps.length],
                   type: "replicate",
                   model: newStepModelName,
                   version,
                   inputs,
-                });
+                };
+                if (newSteps.length > 0) dump.dependsOn = [newSteps[newSteps.length - 1].id];
+                newSteps.push(dump);
                 setSteps(newSteps);
               }}>Add</Button>
             </div>
@@ -179,17 +219,21 @@ export default function Home({workflow, workflowId}) {
             const status = await fetch("/api/status?id=" + json.id);
             const statusJson = await status.json();
             console.log("status", statusJson);
-            if (statusJson.status === "completed") {
+            const runData = statusJson.data;
+            if (runData.status === "completed") {
               clearInterval(interval);
-              setIntervalId(null);
+              setIntervalId(undefined);
             }
-            if (statusJson.status === "failed") {
+            if (runData.status === "failed") {
               clearInterval(interval);
-              setIntervalId(null);
+              setIntervalId(undefined);
             }
+            setStepRunData(runData.steps);
           }, 2000);
           setIntervalId(interval);
-        }}><IoMdPlay className='mr-1' /> Run</Button>
+        }}>
+          {!intervalId ? <IoMdPlay className='mr-1' />: (<div className="lds-ripple"><div></div><div></div></div>)} Run
+          </Button>
         <Button onClick={async () => {
           console.log(steps);
           const result = await fetch("/api/save", {
