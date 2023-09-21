@@ -1,5 +1,5 @@
 import Image from 'next/image'
-// import { cn } from "@/lib/utils"
+import Head from 'next/head'
 import { Textarea } from "@/components/ui/textarea"
 
 // import { Slider } from "@/components/ui/slider"
@@ -91,6 +91,23 @@ export default function Home({workflow, workflowId}) {
   const [stepCollapsed, setStepCollapsed] = useState(steps.map(() => false));
   return (
     <>
+    <Head>
+      <title>LatentGlue.com</title>
+      <meta name="description" content="Glue models together to make pipelines and workflows.">
+    
+      <meta property="og:url" content="https://latentglue.com" />
+      <meta property="og:type" content="website" />
+      <meta property="og:title" content="LatentGlue.com" />
+      <meta property="og:description" content="Glue models together to make pipelines and workflows." />
+      <meta property="og:image" content="https://latentglue.com/og.png" />
+    
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta property="twitter:domain" content="latentglue.com" />
+      <meta property="twitter:url" content="https://latentglue.com" />
+      <meta name="twitter:title" content="LatentGlue.com" />
+      <meta name="twitter:description" content="Glue models together to make pipelines and workflows." />
+      <meta name="twitter:image" content="https://latentglue.com/og.png" />
+    </Head>
     <div style={{minHeight: workflowId?"200px":"500px"}} className="hero text-black align-middle mt-40 text-center">
         {/* <img src="/images/stock/photo-1635805737707-575885ab0820.jpg" className="max-w-sm rounded-lg shadow-2xl" /> */}
           <h1 className="text-5xl font-bold"><a href="/">🍯 Latent<i className="">Glue</i></a></h1>
