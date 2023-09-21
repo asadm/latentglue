@@ -150,7 +150,7 @@ export default function Home({workflow, workflowId}) {
               <CardContent>
                 <div className={'flex divide-x ' + (stepCollapsed[i] ? 'hidden' : '')}>
                   <div className='w-1/2 p-4 text-left overflow-y-auto'>
-                    {Object.keys(step.inputs).map((inputKey, inputIndex) => {
+                    {Object.keys(step.inputs).sort(e=>e==="prompt"?-1:0).map((inputKey, inputIndex) => {
                       const input = step.inputs[inputKey];
                       const InputEl = inputKey === "prompt" ? Textarea : Input;
                       return (
