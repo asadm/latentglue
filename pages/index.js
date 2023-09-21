@@ -93,7 +93,7 @@ export default function Home({workflow, workflowId}) {
     <>
     <Head>
       <title>LatentGlue.com</title>
-      <meta name="description" content="Glue models together to make pipelines and workflows.">
+      <meta name="description" content="Glue models together to make pipelines and workflows." />
     
       <meta property="og:url" content="https://latentglue.com" />
       <meta property="og:type" content="website" />
